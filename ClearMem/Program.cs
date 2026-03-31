@@ -3,9 +3,8 @@ using System.IO;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Runtime.InteropServices;
+using System.Text.Json;
 using System.Windows.Forms;
-using Newtonsoft.Json;
 
 namespace ClearMem
 {
@@ -55,7 +54,7 @@ namespace ClearMem
                 if (File.Exists(configPath))
                 {
                     string json = File.ReadAllText(configPath);
-                    config = JsonConvert.DeserializeObject<Config>(json) ?? new Config();
+                    config = JsonSerializer.Deserialize<Config>(json) ?? new Config();
                 }
                 else
                 {
@@ -72,7 +71,7 @@ namespace ClearMem
         {
             try
             {
-                string json = JsonConvert.SerializeObject(config, Formatting.Indented);
+                string json = JsonSerializer.Serialize(config, new JsonSerializerOptions { WriteIndented = true });
                 File.WriteAllText(configPath, json);
             }
             catch { }
@@ -85,10 +84,10 @@ namespace ClearMem
             notifyIcon.Text = "ClearMem";
 
             ContextMenuStrip menu = new ContextMenuStrip();
-            menu.Items.Add("显示", (s, e) => ShowMainForm());
-            menu.Items.Add("清除缓存", (s, e) => ClearDirectory(config.TargetPath));
+            menu.Items.Add("显示", new EventHandler((s, e) => ShowMainForm()));
+            menu.Items.Add("清除缓存", new EventHandler((s, e) => ClearDirectory(config.TargetPath)));
             menu.Items.Add("-");
-            menu.Items.Add("退出", (s, e) => ExitApplication());
+            menu.Items.Add("退出", new EventHandler((s, e) => ExitApplication()));
             notifyIcon.ContextMenuStrip = menu;
             notifyIcon.DoubleClick += (s, e) => ShowMainForm();
             notifyIcon.Visible = true;
@@ -321,8 +320,8 @@ foreach ($e in $events) {
 
             Panel btnPanel = new Panel() { Dock = DockStyle.Bottom, Height = 45 };
             this.Controls.Add(btnPanel);
-            Button btnSave = new Button() { Text = "保存设置", Right = 100, Top = 10, Width = 80 };
-            Button btnClear = new Button() { Text = "立即清除", Right = 190, Top = 10, Width = 80 };
+            Button btnSave = new Button() { Text = "保存设置", Anchor = AnchorStyles.Right, Left = 250, Top = 10, Width = 80 };
+            Button btnClear = new Button() { Text = "立即清除", Anchor = AnchorStyles.Right, Left = 160, Top = 10, Width = 80 };
             btnSave.Click += (s, e) => SaveSettings();
             btnClear.Click += (s, e) => {
                 if (clearAction(config.TargetPath)) MessageBox.Show("目录已清除", "提示");

@@ -45,7 +45,7 @@ python build_exe.py
 
 ### 环境要求
 
-- .NET 6.0 SDK
+- .NET 8.0 SDK
 
 ### 运行程序
 
