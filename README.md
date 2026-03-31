@@ -15,32 +15,53 @@
 - 默认启用 RDP 自动清除
 - 定时清除默认关闭
 
-## 安装
+---
 
-### 1. 安装依赖
+## Python 版本
+
+### 安装依赖
 
 ```bash
-pip install -r requirements.txt
+pip install pystray Pillow pywin32
 ```
 
-依赖列表:
-- pystray
-- Pillow
-- pywin32
-
-### 2. 运行程序
+### 运行程序
 
 ```bash
 python main.py
 ```
 
-### 3. 打包为 EXE (Windows)
+### 打包为 EXE
 
 ```bash
-pyinstaller clearMem.spec
+python build_exe.py
 ```
 
 打包完成后，可执行文件位于 `dist/ClearMem.exe`
+
+---
+
+## C# 版本
+
+### 环境要求
+
+- .NET 6.0 SDK
+
+### 运行程序
+
+```bash
+cd ClearMem
+dotnet run
+```
+
+### 打包发布
+
+```bash
+cd ClearMem
+dotnet publish -c Release -o ./publish
+```
+
+---
 
 ## 使用说明
 
@@ -62,13 +83,6 @@ pyinstaller clearMem.spec
 
 - 配置文件: `config.json` (自动生成)
 - 日志文件: `clearMem.log`
-
-## 技术栈
-
-- Python 3
-- tkinter (GUI)
-- pystray (系统托盘)
-- PyInstaller (打包)
 
 ## 许可证
 

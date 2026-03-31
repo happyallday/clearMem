@@ -104,7 +104,8 @@ foreach ($e in $events) {
 '''
             result = subprocess.run(
                 ['powershell', '-Command', script],
-                capture_output=True, text=True, timeout=10
+                capture_output=True, text=True, timeout=10,
+                creationflags=subprocess.CREATE_NO_WINDOW if sys.platform == 'win32' else 0
             )
             if result.stdout.strip():
                 return True

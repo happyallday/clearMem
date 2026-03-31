@@ -12,8 +12,6 @@ def build():
         '--standalone',
         '--onefile',
         '--windows-disable-console',
-        '--windows-icon-from-ico=NONE',
-        '--include-data-dir=pystray=pystray',
         '--plugin-enable=tk-inter',
         '--follow-imports',
         '--include-module=pystray',
