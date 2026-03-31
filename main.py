@@ -273,19 +273,19 @@ class App:
         ttk.Checkbutton(parent, text='启用定时清除', variable=self.timer_enable_var, command=self.toggle_timer_type).grid(row=0, column=0, columnspan=3, sticky=W, padx=10, pady=10)
         
         self.timer_type_var = StringVar(value=config.get('timer_type', 'interval'))
-        ttk.Radiobutton(parent, text='间隔清除', variable=self.timer_type_var, value='interval', command=self.toggle_timer_type).grid(row=1, column=0, sticky=W, padx=20)
+        ttk.Radiobutton(parent, text='间隔清除', variable=self.timer_type_var, value='interval', command=lambda: self.toggle_timer_type(parent)).grid(row=1, column=0, sticky=W, padx=20)
         
         self.interval_var = IntVar(value=config.get('timer_interval_minutes', 60))
-        ttk.Spinbox(parent, from_=1, to=1440, textvariable=self.interval_var, width=10).grid(row=1, column=1, padx=5)
-        ttk.Label(parent, text='分钟').grid(row=1, column=2, sticky=W)
+        self.interval_spin = ttk.Spinbox(parent, from_=1, to=1440, textvariable=self.interval_var, width=10)
+        self.interval_spin.grid(row=1, column=1, padx=5)
         
-        ttk.Radiobutton(parent, text='指定时间清除', variable=self.timer_type_var, value='time', command=self.toggle_timer_type).grid(row=2, column=0, sticky=W, padx=20)
+        ttk.Radiobutton(parent, text='指定时间清除', variable=self.timer_type_var, value='time', command=lambda: self.toggle_timer_type(parent)).grid(row=2, column=0, sticky=W, padx=20)
         
         self.time_var = StringVar(value=config.get('timer_time', '03:00'))
-        ttk.Entry(parent, textvariable=self.time_var, width=10).grid(row=2, column=1, padx=5, sticky=W)
-        ttk.Label(parent, text='(格式: HH:MM)').grid(row=2, column=2, sticky=W)
+        self.time_entry = ttk.Entry(parent, textvariable=self.time_var, width=10)
+        self.time_entry.grid(row=2, column=1, padx=5, sticky=W)
         
-        self.toggle_timer_type()
+        self.toggle_timer_type(parent)
     
     def create_about_tab(self, parent):
         ttk.Label(parent, text='ClearMem').pack(pady=20)
@@ -293,14 +293,20 @@ class App:
         ttk.Label(parent, text='功能: 定时/RDP登录自动清除目录').pack(pady=10)
         ttk.Label(parent, text='目录: D:\\cache\\.ws').pack()
     
-    def toggle_timer_type(self):
+    def toggle_timer_type(self, parent):
         state = 'normal' if self.timer_enable_var.get() else 'disabled'
-        for child in self.timer_type_var.master.winfo_children():
-            if isinstance(child, (ttk.Radiobutton, ttk.Spinbox, ttk.Entry, ttk.Label)):
-                try:
-                    child.configure(state=state)
-                except:
-                    pass
+        
+        widgets_to_disable = []
+        if hasattr(self, 'interval_spin'):
+            widgets_to_disable.append(self.interval_spin)
+        if hasattr(self, 'time_entry'):
+            widgets_to_disable.append(self.time_entry)
+        
+        for widget in widgets_to_disable:
+            try:
+                widget.configure(state=state)
+            except:
+                pass
     
     def browse_path(self):
         from tkinter import filedialog
