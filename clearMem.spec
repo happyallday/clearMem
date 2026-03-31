@@ -1,17 +1,21 @@
 # -*- mode: python ; coding: utf-8 -*-
 
-from PyInstaller.utils.hooks import collect_all
-
-datas, binaries, hiddenimports = collect_all('pystray')
-
 block_cipher = None
 
 a = Analysis(
     ['main.py'],
     pathex=[],
-    binaries=binaries,
-    datas=datas,
-    hiddenimports=hiddenimports + ['tkinter', 'PIL._tkinter_finder'],
+    binaries=[],
+    datas=[],
+    hiddenimports=[
+        'pystray',
+        'pystray._win32',
+        'pystray._base',
+        'PIL',
+        'PIL.Image',
+        'PIL.ImageDraw',
+        'tkinter',
+    ],
     hookspath=[],
     runtime_hooks=[],
     excludes=[],
