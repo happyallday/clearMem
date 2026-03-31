@@ -15,7 +15,6 @@ def build():
         '--windows-icon-from-ico=NONE',
         '--include-data-dir=pystray=pystray',
         '--plugin-enable=tk-inter',
-        '--plugin-enable=pylint',
         '--follow-imports',
         '--include-module=pystray',
         '--include-module=PIL',
