@@ -248,6 +248,8 @@ class App:
         notebook.add(frame_timer, text='定时设置')
         notebook.add(frame_about, text='关于')
         
+        self.frame_timer = frame_timer
+        
         self.create_basic_tab(frame_basic)
         self.create_timer_tab(frame_timer)
         self.create_about_tab(frame_about)
@@ -273,19 +275,19 @@ class App:
         ttk.Checkbutton(parent, text='启用定时清除', variable=self.timer_enable_var, command=self.toggle_timer_type).grid(row=0, column=0, columnspan=3, sticky=W, padx=10, pady=10)
         
         self.timer_type_var = StringVar(value=config.get('timer_type', 'interval'))
-        ttk.Radiobutton(parent, text='间隔清除', variable=self.timer_type_var, value='interval', command=lambda: self.toggle_timer_type(parent)).grid(row=1, column=0, sticky=W, padx=20)
+        ttk.Radiobutton(parent, text='间隔清除', variable=self.timer_type_var, value='interval', command=self.toggle_timer_type).grid(row=1, column=0, sticky=W, padx=20)
         
         self.interval_var = IntVar(value=config.get('timer_interval_minutes', 60))
         self.interval_spin = ttk.Spinbox(parent, from_=1, to=1440, textvariable=self.interval_var, width=10)
         self.interval_spin.grid(row=1, column=1, padx=5)
         
-        ttk.Radiobutton(parent, text='指定时间清除', variable=self.timer_type_var, value='time', command=lambda: self.toggle_timer_type(parent)).grid(row=2, column=0, sticky=W, padx=20)
+        ttk.Radiobutton(parent, text='指定时间清除', variable=self.timer_type_var, value='time', command=self.toggle_timer_type).grid(row=2, column=0, sticky=W, padx=20)
         
         self.time_var = StringVar(value=config.get('timer_time', '03:00'))
         self.time_entry = ttk.Entry(parent, textvariable=self.time_var, width=10)
         self.time_entry.grid(row=2, column=1, padx=5, sticky=W)
         
-        self.toggle_timer_type(parent)
+        self.toggle_timer_type()
     
     def create_about_tab(self, parent):
         ttk.Label(parent, text='ClearMem').pack(pady=20)
@@ -293,7 +295,8 @@ class App:
         ttk.Label(parent, text='功能: 定时/RDP登录自动清除目录').pack(pady=10)
         ttk.Label(parent, text='目录: D:\\cache\\.ws').pack()
     
-    def toggle_timer_type(self, parent):
+    def toggle_timer_type(self):
+        parent = self.frame_timer
         state = 'normal' if self.timer_enable_var.get() else 'disabled'
         
         widgets_to_disable = []
