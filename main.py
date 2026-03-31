@@ -348,13 +348,6 @@ class App:
 def main():
     load_config()
     
-    if not os.path.exists(config['target_path']):
-        try:
-            os.makedirs(config['target_path'])
-            logger.info(f"已创建目标目录: {config['target_path']}")
-        except Exception as e:
-            logger.error(f"创建目录失败: {e}")
-    
     global tray_icon
     tray_icon = setup_tray()
     
