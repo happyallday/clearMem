@@ -87,3 +87,10 @@ dotnet publish -c Release -o ./publish
 ## 许可证
 
 MIT License
+
+## 更新日志
+
+### 2024-04-01
+- 修复定时清除任务保存后立即执行的问题
+- 优化定时器实现，使用 Windows Forms Timer
+- 改进配置保存和定时服务启动逻辑

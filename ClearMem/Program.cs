@@ -25,6 +25,7 @@ namespace ClearMem
         private static Mutex mutex;
         private static CancellationTokenSource cts = new CancellationTokenSource();
         private static string configPath = "config.json";
+        private static System.Windows.Forms.Timer timer;
 
         [STAThread]
         static void Main()
@@ -84,19 +85,21 @@ namespace ClearMem
             notifyIcon.Text = "ClearMem";
 
             ContextMenuStrip menu = new ContextMenuStrip();
-            menu.Items.Add("显示", new EventHandler((s, e) => ShowMainForm()));
-            menu.Items.Add("清除缓存", new EventHandler((s, e) => ClearDirectory(config.TargetPath)));
-            menu.Items.Add("-");
-            menu.Items.Add("退出", new EventHandler((s, e) => ExitApplication()));
+            ToolStripMenuItem itemShow = new ToolStripMenuItem("显示");
+            itemShow.Click += (s, e) => ShowMainForm();
+            ToolStripMenuItem itemClear = new ToolStripMenuItem("清除缓存");
+            itemClear.Click += (s, e) => ClearDirectory(config.TargetPath);
+            ToolStripMenuItem itemExit = new ToolStripMenuItem("退出");
+            itemExit.Click += (s, e) => ExitApplication();
+            
+            menu.Items.Add(itemShow);
+            menu.Items.Add(itemClear);
+            menu.Items.Add(new ToolStripSeparator());
+            menu.Items.Add(itemExit);
+            
             notifyIcon.ContextMenuStrip = menu;
             notifyIcon.DoubleClick += (s, e) => ShowMainForm();
             notifyIcon.Visible = true;
-        }
-
-        static void ShowMainForm()
-        {
-            Form form = new MainForm(config, SaveConfig, ClearDirectory);
-            form.ShowDialog();
         }
 
         static void StartServices()
@@ -105,15 +108,12 @@ namespace ClearMem
             {
                 Task.Run(() => RdpMonitorLoop());
             }
-            if (config.EnableTimer)
-            {
-                Task.Run(() => TimerLoop());
-            }
         }
 
         static async Task RdpMonitorLoop()
         {
             long lastLogonTime = 0;
+            string targetPath = config.TargetPath;
             while (!cts.Token.IsCancellationRequested)
             {
                 try
@@ -123,7 +123,7 @@ namespace ClearMem
                         long now = DateTimeOffset.Now.ToUnixTimeSeconds();
                         if (now - lastLogonTime > 60)
                         {
-                            ClearDirectory(config.TargetPath);
+                            ClearDirectory(targetPath);
                             lastLogonTime = now;
                         }
                     }
@@ -169,43 +169,6 @@ foreach ($e in $events) {
             }
         }
 
-        static async Task TimerLoop()
-        {
-            while (!cts.Token.IsCancellationRequested)
-            {
-                try
-                {
-                    if (config.EnableTimer)
-                    {
-                        if (config.TimerType == "interval")
-                        {
-                            int intervalSeconds = config.TimerIntervalMinutes * 60;
-                            await Task.Delay(intervalSeconds, cts.Token);
-                            ClearDirectory(config.TargetPath);
-                        }
-                        else
-                        {
-                            string[] timeParts = config.TimerTime.Split(':');
-                            int hour = int.Parse(timeParts[0]);
-                            int minute = int.Parse(timeParts[1]);
-                            DateTime now = DateTime.Now;
-                            DateTime target = new DateTime(now.Year, now.Month, now.Day, hour, minute, 0);
-                            if (target <= now) target = target.AddDays(1);
-                            int waitMs = (int)(target - now).TotalMilliseconds;
-                            if (waitMs > 0) await Task.Delay(waitMs, cts.Token);
-                            ClearDirectory(config.TargetPath);
-                        }
-                    }
-                    else
-                    {
-                        await Task.Delay(60000, cts.Token);
-                    }
-                }
-                catch (TaskCanceledException) { break; }
-                catch { await Task.Delay(60000); }
-            }
-        }
-
         public static bool ClearDirectory(string path)
         {
             if (!Directory.Exists(path)) return false;
@@ -240,9 +203,44 @@ foreach ($e in $events) {
         static void ExitApplication()
         {
             cts.Cancel();
+            if (timer != null)
+            {
+                timer.Stop();
+                timer.Dispose();
+            }
             notifyIcon.Visible = false;
             notifyIcon.Dispose();
             Application.Exit();
+        }
+
+        static void StartTimerService()
+        {
+            if (timer != null)
+            {
+                timer.Stop();
+                timer.Dispose();
+                timer = null;
+            }
+
+            if (config.EnableTimer)
+            {
+                timer = new System.Windows.Forms.Timer();
+                timer.Interval = config.TimerIntervalMinutes * 60 * 1000;
+                timer.Tick += (s, e) => ClearDirectory(config.TargetPath);
+                timer.Start();
+            }
+        }
+
+        static void SaveConfigAndRestartTimer()
+        {
+            SaveConfig();
+            StartTimerService();
+        }
+
+        static void ShowMainForm()
+        {
+            Form form = new MainForm(config, SaveConfigAndRestartTimer, ClearDirectory);
+            form.ShowDialog();
         }
     }
 
